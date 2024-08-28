@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { horoscopes } from "./cards/data_horoscope";
 import HoroscopeCard from "./cards/horoscopeCard";
-import { Skeleton } from "@nextui-org/skeleton";
 
 const Home = () => {
   const [horoscope, setHoroscope] = useState<string>("");
@@ -11,15 +10,31 @@ const Home = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
+    // Check if Telegram WebApp is available
     if (typeof window !== "undefined" && window.Telegram?.WebApp) {
       const telegram = window.Telegram.WebApp;
-      const user = telegram.initDataUnsafe?.user;
 
-      if (user) {
-        setSelectedSign("aries");
+      if (selectedSign) {
+        // Show the Telegram back button when a sign is selected
+        telegram.BackButton.show();
+
+        // Handle back button press
+        telegram.onEvent("backButtonClicked", () => {
+          setSelectedSign(null);
+          telegram.BackButton.hide();
+        });
+      } else {
+        // Hide the Telegram back button on the home screen
+        telegram.BackButton.hide();
       }
+
+      return () => {
+        telegram.offEvent("backButtonClicked"); // Cleanup listener when the component unmounts or selectedSign changes
+      };
+    } else {
+      console.error("Telegram WebApp is not available.");
     }
-  }, []);
+  }, [selectedSign]);
 
   useEffect(() => {
     if (selectedSign) {
@@ -50,7 +65,7 @@ const Home = () => {
   return (
     <div style={{ textAlign: "center" }}>
       {selectedSign ? (
-        <div className="flex flex-col justify-center items-center mx-auto my-12 w-1/2 h-1/2 border-4 rounded-2xl p-12 bg-violet-300">
+        <div className="flex flex-col justify-center items-center mx-auto my-12 w-1/2 mb:w-[80%] h-1/2 border-4 rounded-2xl p-12 bg-violet-300">
           <h1 className="uppercase text-lg font-semibold m-8">
             {selectedSign.toUpperCase()}
           </h1>

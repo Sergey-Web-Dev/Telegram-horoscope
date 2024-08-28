@@ -20,8 +20,14 @@ declare global {
         close: () => void;
         ready: () => void;
         onEvent: (eventType: string, callback: () => void) => void;
-        offEvent: (eventType: string, callback: () => void) => void;
+        offEvent: (eventType: string, callback?: () => void) => void;
         sendData: (data: string) => void;
+        BackButton: {
+          isVisible: boolean;
+          show: () => void;
+          hide: () => void;
+          onClick: (callback: () => void) => void;
+        };
       };
     };
   }
