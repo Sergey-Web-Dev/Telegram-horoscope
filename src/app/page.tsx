@@ -10,30 +10,56 @@ const Home = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    // Check if Telegram WebApp is available
-    if (typeof window !== "undefined" && window.Telegram?.WebApp) {
-      const telegram = window.Telegram.WebApp;
+    const telegram = window.Telegram?.WebApp;
 
-      if (selectedSign) {
-        // Show the Telegram back button when a sign is selected
-        telegram.BackButton.show();
+    if (selectedSign && telegram) {
+      telegram.BackButton.show();
 
-        // Handle back button press
-        telegram.onEvent("backButtonClicked", () => {
-          setSelectedSign(null);
-          telegram.BackButton.hide();
-        });
-      } else {
-        // Hide the Telegram back button on the home screen
+      telegram.onEvent("backButtonClicked", () => {
+        setSelectedSign(null);
         telegram.BackButton.hide();
-      }
+      });
 
-      return () => {
-        telegram.offEvent("backButtonClicked"); // Cleanup listener when the component unmounts or selectedSign changes
+      const handleSwipe = () => {
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        const onTouchStart = (e: any) => {
+          touchStartX = e.changedTouches[0].screenX;
+        };
+
+        const onTouchMove = (e: any) => {
+          touchEndX = e.changedTouches[0].screenX;
+        };
+
+        const onTouchEnd = () => {
+          if (touchEndX > touchStartX + 50) {
+            // Swipe right detected, go back
+            setSelectedSign(null);
+            telegram.BackButton.hide();
+          }
+        };
+
+        document.addEventListener("touchstart", onTouchStart);
+        document.addEventListener("touchmove", onTouchMove);
+        document.addEventListener("touchend", onTouchEnd);
+
+        return () => {
+          document.removeEventListener("touchstart", onTouchStart);
+          document.removeEventListener("touchmove", onTouchMove);
+          document.removeEventListener("touchend", onTouchEnd);
+        };
       };
-    } else {
-      console.error("Telegram WebApp is not available.");
+
+      handleSwipe();
+    } else if (telegram) {
+      // Hide the Telegram back button on the home screen
+      telegram.BackButton.hide();
     }
+
+    return () => {
+      telegram?.offEvent("backButtonClicked"); // Cleanup listener when the component unmounts or selectedSign changes
+    };
   }, [selectedSign]);
 
   useEffect(() => {
