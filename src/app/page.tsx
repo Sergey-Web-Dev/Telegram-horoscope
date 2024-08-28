@@ -4,10 +4,46 @@ import { useEffect, useState } from "react";
 import { horoscopes } from "./cards/data_horoscope";
 import HoroscopeCard from "./cards/horoscopeCard";
 
+const translations = {
+  en: {
+    chooseSign: "Choose your Sign:",
+    back: "Back",
+    closeApp: "Close App",
+    loading: "Loading...",
+    horoscopeUnavailable: "Unable to load horoscope.",
+    errorLoading: "Error loading horoscope.",
+  },
+  ru: {
+    chooseSign: "Выберите свой знак:",
+    back: "Назад",
+    closeApp: "Закрыть приложение",
+    loading: "Загрузка...",
+    horoscopeUnavailable: "Невозможно загрузить гороскоп.",
+    errorLoading: "Ошибка загрузки гороскопа.",
+  },
+};
+
+const availableLanguages = [
+  { code: "en", name: "English" },
+  { code: "ru", name: "Русский" },
+];
+
 const Home = () => {
   const [horoscope, setHoroscope] = useState<string>("");
   const [selectedSign, setSelectedSign] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [language, setLanguage] = useState<string>("en");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.Telegram?.WebApp) {
+      const userLang =
+        window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
+      //@ts-ignore
+      if (userLang && translations[userLang]) {
+        setLanguage(userLang);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const telegram = window.Telegram?.WebApp;
@@ -87,9 +123,30 @@ const Home = () => {
 
       fetchHoroscope();
     }
-  }, [selectedSign]);
+  }, [selectedSign, language]);
+
+  const handleLanguageChange = (event: any) => {
+    setLanguage(event.target.value);
+  };
+
   return (
     <div style={{ textAlign: "center" }}>
+      <div>
+        <label htmlFor="language-selector">
+          {translations[language].changeLanguage}:{" "}
+        </label>
+        <select
+          id="language-selector"
+          value={language}
+          onChange={handleLanguageChange}
+        >
+          {availableLanguages.map((lang) => (
+            <option key={lang.code} value={lang.code}>
+              {lang.name}
+            </option>
+          ))}
+        </select>
+      </div>
       {selectedSign ? (
         <div className="flex flex-col justify-center items-center mx-auto my-12 w-1/2 mb:w-[80%] h-1/2 border-4 rounded-2xl p-12 bg-violet-300">
           <h1 className="uppercase text-lg font-semibold m-8">
@@ -102,15 +159,17 @@ const Home = () => {
             height={128}
           />
 
-          <p className="mt-12">{loading ? "Loading..." : horoscope}</p>
+          <p className="mt-12">
+            {loading ? translations[language].loading : horoscope}
+          </p>
           <button className="mt-6" onClick={() => setSelectedSign(null)}>
-            Back
+            {translations[language].back}
           </button>
         </div>
       ) : (
         <>
           <h1 className="uppercase text-lg font-semibold m-8">
-            Choose your Sign:
+            {translations[language].chooseSign}
           </h1>
           <div className="flex justify-between items-center flex-wrap ">
             {horoscopes.map((sign) => (
@@ -123,7 +182,7 @@ const Home = () => {
             ))}
           </div>
           <button onClick={() => window.Telegram.WebApp.close()}>
-            Close App
+            {translations[language].closeApp}
           </button>
         </>
       )}
