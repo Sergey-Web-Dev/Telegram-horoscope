@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { horoscopes } from "./cards/data_horoscope";
 import HoroscopeCard from "./cards/horoscopeCard";
 
-const translations = {
+const translations: any = {
   en: {
     chooseSign: "Choose your Sign:",
     back: "Back",
@@ -38,7 +38,6 @@ const Home = () => {
     if (typeof window !== "undefined" && window.Telegram?.WebApp) {
       const userLang =
         window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
-      //@ts-ignore
       if (userLang && translations[userLang]) {
         setLanguage(userLang);
       }
@@ -70,7 +69,6 @@ const Home = () => {
 
         const onTouchEnd = () => {
           if (touchEndX > touchStartX + 50) {
-            // Swipe right detected, go back
             setSelectedSign(null);
             telegram.BackButton.hide();
           }
@@ -89,12 +87,11 @@ const Home = () => {
 
       handleSwipe();
     } else if (telegram) {
-      // Hide the Telegram back button on the home screen
       telegram.BackButton.hide();
     }
 
     return () => {
-      telegram?.offEvent("backButtonClicked"); // Cleanup listener when the component unmounts or selectedSign changes
+      telegram?.offEvent("backButtonClicked");
     };
   }, [selectedSign]);
 
